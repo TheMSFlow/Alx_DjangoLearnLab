@@ -5,14 +5,13 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'LibraryProject.settings')
 django.setup()
 
-from relationship_app.models import Author, Book, Library
+from relationship_app.models import Author, Book, Library, Librarian
 
 # 1. Query all books by a specific author
 def books_by_author(author_name):
     try:
         author = Author.objects.get(name=author_name)
-        books = Book.objects.filter(author=author)
-        return books
+        return Book.objects.filter(author=author)
     except Author.DoesNotExist:
         return []
 
@@ -24,14 +23,13 @@ def books_in_library(library_name):
     except Library.DoesNotExist:
         return []
 
-# 3. Retrieve the librarian for a library
+# 3. Retrieve the librarian for a library (explicit query)
 def librarian_for_library(library_name):
     try:
         library = Library.objects.get(name=library_name)
-        return library.librarian  # OneToOneField reverse relation
-    except Library.DoesNotExist:
-        return None
-    except Library.librarian.RelatedObjectDoesNotExist:
+        librarian = Librarian.objects.get(library=library)  # ✅ direct get using FK
+        return librarian
+    except (Library.DoesNotExist, Librarian.DoesNotExist):
         return None
 
 # Example usage
