@@ -53,6 +53,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Enable the browser's built-in XSS filter
 SECURE_BROWSER_XSS_FILTER = True
 
+# Ensure HTTPS handling works with proxy/load balancer (Heroku)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 
 # Application definition
