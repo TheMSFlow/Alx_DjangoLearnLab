@@ -1,28 +1,52 @@
 import os
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "LibraryProject.settings")
+# Setup Django environment
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'LibraryProject.settings')
 django.setup()
 
-from relationship_app.models import Author, Book, Library, Librarian
+from relationship_app.models import Author, Book, Library
 
 # 1. Query all books by a specific author
 def books_by_author(author_name):
-    author = Author.objects.get(name=author_name)
-    return author.books.all()
+    try:
+        author = Author.objects.get(name=author_name)
+        books = Book.objects.filter(author=author)
+        return books
+    except Author.DoesNotExist:
+        return []
 
 # 2. List all books in a library
 def books_in_library(library_name):
-    library = Library.objects.get(name=library_name)
-    return library.books.all()
+    try:
+        library = Library.objects.get(name=library_name)
+        return library.books.all()
+    except Library.DoesNotExist:
+        return []
 
 # 3. Retrieve the librarian for a library
 def librarian_for_library(library_name):
-    library = Library.objects.get(name=library_name)
-    return library.librarian
+    try:
+        library = Library.objects.get(name=library_name)
+        return library.librarian  # OneToOneField reverse relation
+    except Library.DoesNotExist:
+        return None
+    except Library.librarian.RelatedObjectDoesNotExist:
+        return None
 
-# Example Usage:
+# Example usage
 if __name__ == "__main__":
-    print("Books by Jane Austen:", books_by_author("Jane Austen"))
-    print("Books in Central Library:", books_in_library("Central Library"))
-    print("Librarian for Central Library:", librarian_for_library("Central Library"))
+    print("\nBooks by 'Jane Austen':")
+    for book in books_by_author("Jane Austen"):
+        print(f"- {book.title}")
+
+    print("\nBooks in 'Central Library':")
+    for book in books_in_library("Central Library"):
+        print(f"- {book.title} by {book.author.name}")
+
+    print("\nLibrarian for 'Central Library':")
+    librarian = librarian_for_library("Central Library")
+    if librarian:
+        print(f"- {librarian.name}")
+    else:
+        print("- No librarian assigned")
