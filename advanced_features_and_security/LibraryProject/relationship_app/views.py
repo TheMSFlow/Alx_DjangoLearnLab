@@ -3,6 +3,13 @@ from django.views.generic.detail import DetailView
 from .models import Book
 from .models import Library
 
+from django.http import HttpResponse
+
+def secure_view(request):
+    response = HttpResponse("Secure content")
+    response['Content-Security-Policy'] = "default-src 'self'"
+    return response
+
 # ✅ Function-based view that uses the correct template path and query
 def list_books(request):
     books = Book.objects.all()  # ✅ Required line
