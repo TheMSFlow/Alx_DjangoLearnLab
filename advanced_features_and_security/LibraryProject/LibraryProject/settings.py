@@ -36,6 +36,24 @@ SESSION_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1'] 
 
+# Redirect all HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = True
+
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 31536000  # One year in seconds
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Prevent Clickjacking
+X_FRAME_OPTIONS = 'DENY'
+
+# Prevent MIME-sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Enable the browser's built-in XSS filter
+SECURE_BROWSER_XSS_FILTER = True
+
+
 
 # Application definition
 
