@@ -108,3 +108,10 @@ This document describes the Django REST Framework views for managing `Book` inst
 - `?ordering=-title` (Z → A)
 - `?ordering=publication_year` (oldest → newest)
 - `?ordering=-publication_year` (newest → oldest)
+
+
+## Running Tests
+
+1. Run all tests:
+```bash
+python manage.py test api
