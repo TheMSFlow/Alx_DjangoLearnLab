@@ -90,3 +90,21 @@ This document describes the Django REST Framework views for managing `Book` inst
   "publication_year": 1999,
   "author": 1
 }
+
+## Filtering, Searching, and Ordering
+
+**Base URL:** `/api/books/`
+
+### Filtering
+- `?title=Book Title`
+- `?author__name=Author Name`
+- `?publication_year=YYYY`
+
+### Searching
+- `?search=keyword` (searches in title and author name)
+
+### Ordering
+- `?ordering=title` (A → Z)
+- `?ordering=-title` (Z → A)
+- `?ordering=publication_year` (oldest → newest)
+- `?ordering=-publication_year` (newest → oldest)

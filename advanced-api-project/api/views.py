@@ -6,20 +6,48 @@ from .serializers import BookSerializer
 
 
 
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from .models import Book
+from .serializers import BookSerializer
+
 class BookListView(generics.ListAPIView):
     """
     GET /api/books/
     ----------------
     - Retrieves a list of all Book instances.
-    - Publicly accessible (no authentication required).
-    - Uses DRF's ListAPIView to automatically handle:
-        * Querying all objects
-        * Serializing them to JSON
-        * Applying pagination/filters if enabled in settings.py
+    - Publicly accessible (read-only for unauthenticated users).
+    - Supports advanced query capabilities:
+        * Filtering by title, author, and publication_year.
+        * Searching by title and author name.
+        * Ordering by title or publication_year.
+
+    Examples:
+        - Filter: /api/books/?title=The Hobbit
+        - Filter: /api/books/?publication_year=2020
+        - Search: /api/books/?search=tolkien
+        - Order: /api/books/?ordering=title
+        - Order descending: /api/books/?ordering=-publication_year
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # Anyone can access
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # Filtering, searching, ordering setup
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+
+    # Fields that can be filtered
+    filterset_fields = ['title', 'author__name', 'publication_year']
+
+    # Fields that can be searched
+    search_fields = ['title', 'author__name']
+
+    # Fields that can be ordered
+    ordering_fields = ['title', 'publication_year']
+    ordering = ['title']  # Default ordering
+
 
 
 class BookDetailView(generics.RetrieveAPIView):
