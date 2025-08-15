@@ -17,6 +17,11 @@ header {
     text-align: center;
 }
 
+header nav {
+    display: flex;
+    gap: 4px;
+}
+
 header nav ul {
     list-style-type: none;
 }

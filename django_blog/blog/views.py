@@ -9,6 +9,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from .models import Post
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.list import ListView 
+from django.db.models import Q
+from taggit.models import Tag
 
 from .models import Post, Comment
 from .forms import CommentForm
@@ -19,6 +21,20 @@ def home(request):
 def posts(request):
     all_posts = Post.objects.all().order_by('-published_date')  # newest first
     return render(request, 'blog/posts.html', {'posts': all_posts})
+
+def posts_by_tag(request, tag_slug):
+    tag = Tag.objects.get(slug=tag_slug)
+    posts = Post.objects.filter(tags__in=[tag])
+    return render(request, 'blog/posts.html', {'posts': posts, 'tag': tag})
+
+def post_search(request):
+    query = request.GET.get('q', '')
+    results = Post.objects.filter(
+        Q(title__icontains=query) |
+        Q(content__icontains=query) |
+        Q(tags__name__icontains=query)
+    ).distinct()
+    return render(request, 'blog/search_results.html', {'results': results, 'query': query})
 
 
 def register(request):

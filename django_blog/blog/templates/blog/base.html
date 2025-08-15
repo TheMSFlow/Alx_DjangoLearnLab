@@ -25,6 +25,10 @@
                 <li><a href="{% url 'login' %}">Login</a></li>
                 <li><a href="{% url 'register' %}">Register</a></li>
             </ul>
+            <form method="get" action="{% url 'post-search' %}">
+                <input type="text" name="q" placeholder="Search posts...">
+                <button type="submit">Search</button>
+            </form>
         </nav>
     </header>
 
