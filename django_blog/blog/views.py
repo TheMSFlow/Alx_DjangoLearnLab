@@ -72,6 +72,22 @@ class PostListView(ListView):
     context_object_name = 'posts'
     ordering = ['-created_at']
 
+
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'  # create this template
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        # Get the tag slug from the URL
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag_name'] = self.kwargs.get('tag_name')
+        return context
+
 # Show a single post
 class PostDetailView(DetailView):
     model = Post
