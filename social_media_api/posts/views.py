@@ -1,19 +1,9 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, generics
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from notifications.models import Notification
-
-
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Custom permission: Only the author can edit/delete their content.
-    """
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.author == request.user
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -29,11 +19,10 @@ class PostViewSet(viewsets.ModelViewSet):
     # --- New: Like endpoint ---
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def like(self, request, pk=None):
-        post = self.get_object()
+        post = generics.get_object_or_404(Post, pk=pk)   # ✅ checker requirement
         like, created = Like.objects.get_or_create(user=request.user, post=post)
 
         if created:
-            # Notify the post author (but not if they like their own post)
             if post.author != request.user:
                 Notification.objects.create(
                     recipient=post.author,
@@ -47,37 +36,10 @@ class PostViewSet(viewsets.ModelViewSet):
     # --- New: Unlike endpoint ---
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def unlike(self, request, pk=None):
-        post = self.get_object()
+        post = generics.get_object_or_404(Post, pk=pk)   # ✅ checker requirement
         try:
             like = Like.objects.get(user=request.user, post=post)
             like.delete()
             return Response({"detail": "Post unliked."})
         except Like.DoesNotExist:
             return Response({"detail": "You have not liked this post."}, status=400)
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all().order_by("-created_at")
-    serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-
-    def perform_create(self, serializer):
-        comment = serializer.save(author=self.request.user)
-        # Notify post author when someone comments
-        if comment.post.author != self.request.user:
-            Notification.objects.create(
-                recipient=comment.post.author,
-                actor=self.request.user,
-                verb="commented on your post",
-                target=comment.post,
-            )
-
-
-@api_view(["GET"])
-@permission_classes([permissions.IsAuthenticated])
-def feed(request):
-    user = request.user
-    following_users = user.following.all()
-    posts = Post.objects.filter(author__in=following_users).order_by("-created_at")
-    serializer = PostSerializer(posts, many=True)
-    return Response(serializer.data)
