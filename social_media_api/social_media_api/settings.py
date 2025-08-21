@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     # Local
     'accounts',
+    'posts',
 ]
 
 # Use our custom user model
@@ -57,6 +58,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',  # public endpoints by default; secure per-view
     ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_FILTER_BACKENDS": ["rest_framework.filters.SearchFilter"],
 }
 
 MIDDLEWARE = [
