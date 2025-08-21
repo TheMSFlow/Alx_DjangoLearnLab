@@ -1,21 +1,27 @@
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import action
 from .models import CustomUser
 from .serializers import UserSerializer, RegisterSerializer
-from rest_framework.decorators import action
 
-class RegisterView(generics.CreateAPIView):
+
+class RegisterView(generics.GenericAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        user = CustomUser.objects.get(username=response.data['username'])
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
         token, _ = Token.objects.get_or_create(user=user)
-        response.data['token'] = token.key
-        return response
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": token.key,
+        }, status=status.HTTP_201_CREATED)
+
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -27,6 +33,7 @@ class CustomAuthToken(ObtainAuthToken):
             'username': token.user.username
         })
 
+
 class ProfileView(generics.RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
@@ -37,7 +44,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
